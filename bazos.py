@@ -8,16 +8,17 @@ from bs4 import BeautifulSoup
 ################################################################################
 
 DEFAULT_ARGS = dict(
-    zip_code = 10400,
-    dist = 50,
+    zip_code = 13000,
+    country = "cz",
+    dist = 1000,
     min_p = 15000,
-    max_p = 25000,
-    n_ads = 100,
+    max_p = 50000,
+    n_ads = 150,
     send_mail = False,
-    mb_years = ['2019', '2020', '2021']
+    mb_years = ['2021', "2022", "2023", "2024"]
 )
 
-BASE_YEARS = [str(i) for i in range(2010,2022)]
+BASE_YEARS = [str(i) for i in range(2010,2024)]
 
 try:
     CURR_DIR = os.path.dirname(os.path.realpath(__file__))
@@ -58,9 +59,9 @@ class RegexOperator():
             bool: True if found in header, False if found in description, None 
                   if not found
         """
-        if re.search(fr'\b{to_search}\b', self.url) is not None: return True
-        if re.search(fr'\b{to_search}\b', self.title) is not None: return True
-        if re.search(fr'\b{to_search}\b', self.text) is not None: return False
+        if re.search(fr'\b{to_search}\b', self.url, re.IGNORECASE) is not None: return True
+        if re.search(fr'\b{to_search}\b', self.title, re.IGNORECASE) is not None: return True
+        if re.search(fr'\b{to_search}\b', self.text, re.IGNORECASE) is not None: return False
 
         return None
 
@@ -165,9 +166,9 @@ class Macbook():
             model = r.pro_or_air(),
             year = r.inor(True, BASE_YEARS),
             ram = r.inor(True, ['4gb', '4 gb', '8', '8gb', '8 gb' '16', '16gb', '16 gb', '32', '32gb', '32 gb']),
-            memory = r.inor(True, [128, '128gb', '128 gb',256, '256gb', '256 gb', 512, '512gb', '512 gb', '1tb', '1 tb', '1000 gb', '1000gb']),
-            touchbar = r.inor(False, ['touchbar', 'touch bar']),
-            m1 = r.instr('m1') is not None,
+            storage = r.inor(True, [128, '128gb', '128 gb', 256, '256gb', '256 gb', 512, '512gb', '512 gb', '1tb', '1 tb', '1000 gb', '1000gb']),
+            is_m_chip = r.instr('m1 pro') is not None or r.instr('m2 pro') is not None or r.instr('m3') is not None or r.instr('m3 pro') is not None,
+            m_chip = r.inor(False, ["m1 pro", "m2 pro", "m3 pro", "m3"]),
             cpu = r.get_cpu(),
             url = self.url
         )
@@ -209,6 +210,8 @@ def get_cmd_args() -> dict:
 
     parser.add_argument('--zip_code', type=int, nargs='?',
                         help='Zip code - e.g. 10500')
+    parser.add_argument('--country', type=str, nargs='*',
+                        help='cz or sk')
     parser.add_argument('--dist', type=int, nargs='?',
                         help='Distance in km from zip code - e.g. 50')
     parser.add_argument('--min_p', type=int, nargs='?',
@@ -294,6 +297,7 @@ def main(**kwargs) -> list[pd.DataFrame]:
         list[pd.DataFrame]: list of result dataframes - all, airs, pros
     """
     zip_code = str(kwargs['zip_code'])
+    country = str(kwargs['country'])
     dist = str(kwargs['dist'])
     min_p = str(kwargs['min_p'])
     max_p = str(kwargs['max_p'])
@@ -301,13 +305,13 @@ def main(**kwargs) -> list[pd.DataFrame]:
     send_mail_var = True if str(kwargs['send_mail']) == 'True' else False # because of the environment variables treated as strings
     mb_years = [str(y) for y in kwargs['mb_years']]
 
-    base_url = f'https://bazos.cz/search.php?hledat=macbook&rubriky=www&hlokalita={zip_code}&humkreis={dist}&cenaod={min_p}&cenado={max_p}&Submit=Hledat&kitx=ano&order=&crz='
+    base_url = f'https://bazos.{country}/search.php?hledat=macbook&rubriky=www&hlokalita={zip_code}&humkreis={dist}&cenaod={min_p}&cenado={max_p}&Submit=Hledat&kitx=ano&order=&crz='
     macbooks = pd.DataFrame()
 
     for i in range(0, n_ads, 20):
         url = base_url + str(i)
         print(url)
-        
+
         soup = make_soup(url)
         ads = soup.find_all("div", {"class":"inzeraty"})
 
@@ -315,13 +319,14 @@ def main(**kwargs) -> list[pd.DataFrame]:
             href = str(ad.find_all("div", {"class":"inzeratynadpis"})[0].find("a"))
             ad_url = re.findall(r'''<a href=(["'])(.*?)\1''', href)[0][1]
             mb = Macbook(ad_url)
-            macbooks = macbooks.append(mb.all_info)
+            if mb.attributes.loc['is_m_chip', 0] is True:
+                macbooks = macbooks.append(mb.all_info)
 
     macbooks = macbooks.sort_values('Cena:', ascending=True)
     macbooks.to_csv(CURR_DIR +'/data/all.csv', sep=';')
 
     # Macbooks Air
-    airs = macbooks[~(macbooks['model'] == 'Pro') & (~macbooks['year'].isin(list(set(BASE_YEARS) - set(mb_years)))) & (macbooks['m1'])] 
+    airs = macbooks[~(macbooks['model'] == 'Pro') & (~macbooks['year'].isin(list(set(BASE_YEARS) - set(mb_years)))) & (macbooks['is_m_chip'])]
     airs.to_csv(CURR_DIR +'/data/airs.csv', sep=';')
     print(f'{80*"-"}')
     print(len(airs), "Macbooks Air found")

@@ -13,8 +13,10 @@
 * **locally**: `python bazos.py` [optional arguments - see [below](#inputs)] or run inside `bazos_macbooks.ipynb` jupyter notebook
 
 * **in docker**: 
-    1. `docker build -t bazos .`
-    2. `docker run -v "absolute/path/to/your/directory:/app/data" bazos`
+  1. `docker build -t bazos C:/Users/lehot/projects/bazos-macbook-finder && docker run -v C:/Users/lehot/projects/bazos-macbook-finder/data:/app/data -e BAZOS_N_ADS=100 -e BAZOS_COUNTRY=sk -e BAZOS_ZIP_CODE=97401 -e BAZOS_DIST=50 -e BAZOS_MIN_P=400 -e BAZOS_MAX_P=2000 bazos`
+
+[//]: # (    1. `docker build -t bazos .`)
+[//]: # (    2. `docker run -v "absolute/path/to/your/directory:/app/data" bazos`)
 
 <h2 id="inputs">[Optional] Inputs</h2>
 
