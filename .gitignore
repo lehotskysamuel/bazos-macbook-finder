@@ -5,3 +5,5 @@ smtp_creds
 
 .idea
 data/*
+data-ba/*
+data-bb/*

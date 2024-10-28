@@ -302,6 +302,7 @@ def main(**kwargs) -> list[pd.DataFrame]:
     min_p = str(kwargs['min_p'])
     max_p = str(kwargs['max_p'])
     n_ads = int(kwargs['n_ads'])
+    # min_date = int(kwargs['min_date'])
     send_mail_var = True if str(kwargs['send_mail']) == 'True' else False # because of the environment variables treated as strings
     mb_years = [str(y) for y in kwargs['mb_years']]
 

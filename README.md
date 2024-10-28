@@ -13,7 +13,8 @@
 * **locally**: `python bazos.py` [optional arguments - see [below](#inputs)] or run inside `bazos_macbooks.ipynb` jupyter notebook
 
 * **in docker**: 
-  1. `docker build -t bazos C:/Users/lehot/projects/bazos-macbook-finder && docker run -v C:/Users/lehot/projects/bazos-macbook-finder/data:/app/data -e BAZOS_N_ADS=100 -e BAZOS_COUNTRY=sk -e BAZOS_ZIP_CODE=97401 -e BAZOS_DIST=50 -e BAZOS_MIN_P=400 -e BAZOS_MAX_P=2000 bazos`
+- BB `docker build -t bazos C:/Users/lehot/projects/bazos-macbook-finder && docker run -v C:/Users/lehot/projects/bazos-macbook-finder/data-bb:/app/data -e BAZOS_COUNTRY=sk -e BAZOS_ZIP_CODE=97401 -e BAZOS_DIST=50 -e BAZOS_MIN_P=400 -e BAZOS_MAX_P=2000 -e BAZOS_N_ADS=20 bazos`
+- BA `docker build -t bazos C:/Users/lehot/projects/bazos-macbook-finder && docker run -v C:/Users/lehot/projects/bazos-macbook-finder/data-ba:/app/data -e BAZOS_COUNTRY=sk -e BAZOS_ZIP_CODE=83101 -e BAZOS_DIST=250 -e BAZOS_MIN_P=400 -e BAZOS_MAX_P=2000 -e BAZOS_N_ADS=100 bazos`
 
 [//]: # (    1. `docker build -t bazos .`)
 [//]: # (    2. `docker run -v "absolute/path/to/your/directory:/app/data" bazos`)
